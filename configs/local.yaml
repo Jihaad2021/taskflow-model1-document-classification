@@ -1,0 +1,37 @@
+runtime:
+  run_mode: "local"
+  device: "cpu"
+  seed: 42
+
+data:
+  dataset_name: "ag_news"
+  text_column: "text"
+  label_column: "label"
+  max_train_samples: 2000
+  max_eval_samples: 500
+
+model:
+  model_name: "distilbert-base-uncased"
+  num_labels: 4
+  max_length: 256
+  dropout: 0.1
+
+training:
+  epochs: 1
+  batch_size: 8
+  learning_rate: 2e-5
+  weight_decay: 0.01
+  warmup_steps: 0
+  logging_steps: 50
+  eval_steps: 200
+  save_total_limit: 2
+
+optimization:
+  export_onnx: true
+  onnx_opset: 17
+  optimize_fp16: true
+
+api:
+  host: "0.0.0.0"
+  port: 8001
+  reload: true
