@@ -1,0 +1,15 @@
+runtime:
+  run_mode: "local"
+  device: "cpu"    # "cpu" untuk dev lokal, nanti bisa "cuda" di Kaggle
+  seed: 42
+
+data:
+  dataset_name: "ag_news"
+  text_column: "text"
+  label_column: "label"
+  max_train_samples: 2000    # subset untuk dev lokal (optional)
+  max_eval_samples: 500      # subset untuk eval lokal (optional)
+
+model:
+  model_name: "distilbert-base-uncased"
+  max_length: 256            # dipakai untuk tokenization

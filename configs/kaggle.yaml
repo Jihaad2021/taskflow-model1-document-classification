@@ -1,0 +1,37 @@
+runtime:
+  run_mode: "kaggle"
+  device: "cuda"
+  seed: 42
+
+data:
+  dataset_name: "ag_news"
+  text_column: "text"
+  label_column: "label"
+  max_train_samples: null
+  max_eval_samples: null
+
+model:
+  model_name: "distilbert-base-uncased"
+  num_labels: 4
+  max_length: 256
+  dropout: 0.1
+
+training:
+  epochs: 3
+  batch_size: 32
+  learning_rate: 2e-5
+  weight_decay: 0.01
+  warmup_steps: 500
+  logging_steps: 100
+  eval_steps: 500
+  save_total_limit: 3
+
+optimization:
+  export_onnx: true
+  onnx_opset: 17
+  optimize_fp16: true
+
+api:
+  host: "0.0.0.0"
+  port: 8001
+  reload: false
