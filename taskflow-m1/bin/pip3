@@ -1,4 +1,4 @@
-#!/Users/jihaad/Documents/taskflow-model1-document-classification/taskflow-m1/bin/python3.12
+#!/Users/jihaad/Documents/taskflow-model1-document-classification/taskflow-m1/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
