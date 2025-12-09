@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Dict, Optional, Any
 
 import yaml
 from pydantic import BaseModel, Field, ConfigDict
@@ -64,25 +64,93 @@ class DataConfig(BaseModel):
 
 
 class ModelConfig(BaseModel):
-    """Minimal model-related configuration required for the data pipeline.
-
-    At this phase, we only care about tokenizer name and max_length.
-    Other training-related fields will be added in later phases.
-    """
+    """Configuration for the classification model."""
 
     model_name: str = Field(
         ...,
-        description="HuggingFace model name used to load the tokenizer.",
+        description="HuggingFace model name, e.g. 'distilbert-base-uncased'.",
     )
     max_length: int = Field(
         256,
-        ge=8,
-        description="Maximum sequence length for tokenization.",
+        description="Maximum sequence length used during tokenization.",
     )
 
-    # Fix warning: 'model_' protected namespace
-    model_config = ConfigDict(protected_namespaces=())
+    # New fields for Phase 2 (model-building & training)
+    num_labels: Optional[int] = Field(
+        None,
+        description=(
+            "Number of classification labels. If None, it must be provided "
+            "explicitly when building the model."
+        ),
+    )
+    id2label: Optional[Dict[int, str]] = Field(
+        default=None,
+        description="Optional mapping from class index to label name.",
+    )
+    label2id: Optional[Dict[str, int]] = Field(
+        default=None,
+        description="Optional mapping from label name to class index.",
+    )
 
+class TrainingConfig(BaseModel):
+    """Configuration for model training (Phase 2)."""
+
+    output_dir_name: str = Field(
+        "model_1_classifier",
+        description="Subdirectory name under models_dir where checkpoints will be saved.",
+    )
+    num_train_epochs: int = Field(
+        3,
+        ge=1,
+        description="Number of training epochs.",
+    )
+    per_device_train_batch_size: int = Field(
+        16,
+        ge=1,
+        description="Training batch size per device.",
+    )
+    per_device_eval_batch_size: int = Field(
+        32,
+        ge=1,
+        description="Evaluation batch size per device.",
+    )
+    learning_rate: float = Field(
+        5e-5,
+        gt=0.0,
+        description="Learning rate for the optimizer.",
+    )
+    weight_decay: float = Field(
+        0.0,
+        ge=0.0,
+        description="Weight decay for optimizer.",
+    )
+    warmup_ratio: float = Field(
+        0.0,
+        ge=0.0,
+        le=1.0,
+        description="Warmup ratio for the learning rate scheduler.",
+    )
+    logging_steps: int = Field(
+        50,
+        ge=1,
+        description="Interval (in steps) for logging training metrics.",
+    )
+    evaluation_strategy: str = Field(
+        "epoch",
+        description="Evaluation strategy used by HF Trainer (e.g. 'no', 'steps', 'epoch').",
+    )
+    save_strategy: str = Field(
+        "epoch",
+        description="Checkpoint save strategy used by HF Trainer.",
+    )
+    metric_for_best_model: str = Field(
+        "f1",
+        description="Primary metric used to select the best model.",
+    )
+    greater_is_better: bool = Field(
+        True,
+        description="Whether a higher value of metric_for_best_model is better.",
+    )
 
 class AppConfig(BaseModel):
     """Top-level application configuration for the data pipeline phase."""
@@ -90,7 +158,7 @@ class AppConfig(BaseModel):
     runtime: RuntimeConfig
     data: DataConfig
     model: ModelConfig
-
+    training: TrainingConfig
 
 # ============================
 # Settings (paths, env) – infra-level, not phase-specific
@@ -136,21 +204,27 @@ def get_settings() -> Settings:
 def load_app_config(config_path: str | Path) -> AppConfig:
     """Load application configuration from a YAML file.
 
-    Only runtime, data, and model sections are expected at this phase.
+    The following sections are expected:
+        - runtime
+        - data
+        - model
+        - training (optional; defaults will be used if missing)
     """
     path = Path(config_path)
     if not path.exists():
         raise FileNotFoundError(f"Config file not found: {path}")
 
     with path.open("r", encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
+        raw: dict[str, Any] = yaml.safe_load(f) or {}
 
     runtime_cfg = RuntimeConfig(**raw.get("runtime", {}))
     data_cfg = DataConfig(**raw.get("data", {}))
     model_cfg = ModelConfig(**raw.get("model", {}))
+    training_cfg = TrainingConfig(**raw.get("training", {}))
 
     return AppConfig(
         runtime=runtime_cfg,
         data=data_cfg,
         model=model_cfg,
+        training=training_cfg,
     )
