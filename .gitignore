@@ -210,3 +210,5 @@ data/hf_cache/
 models/
 
 taskflow-m1/
+
+artifacts/

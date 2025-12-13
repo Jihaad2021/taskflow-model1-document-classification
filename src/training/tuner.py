@@ -1,9 +1,7 @@
-# src/training/tuner.py
-
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from datasets import DatasetDict
 
@@ -12,6 +10,9 @@ from src.training.trainer import train_classification_model
 from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+
+if TYPE_CHECKING:
+    from optuna.trial import Trial
 
 try:
     import optuna 
@@ -32,7 +33,7 @@ def _ensure_optuna_available() -> None:
 
 
 def suggest_training_config(
-    trial: "optuna.trial.Trial",
+    trial: Trial,
     base_training_cfg: TrainingConfig,
 ) -> TrainingConfig:
     """Create a TrainingConfig instance with hyperparameters suggested by Optuna.
@@ -141,7 +142,7 @@ def run_hyperparameter_search(
         },
     )
 
-    def objective(trial: "optuna.trial.Trial") -> float:
+    def objective(trial: Trial) -> float:
         """Optuna objective function for a single trial."""
         # Sample hyperparameters for this trial
         trial_training_cfg = suggest_training_config(

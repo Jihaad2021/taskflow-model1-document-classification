@@ -13,7 +13,8 @@ pydantic-settings==2.1.0
 PyYAML==6.0.1
 
 # Optimization
-onnxruntime==1.16.0
+onnx==1.15.0
+onnxruntime>=1.16.0
 
 # Logging & utilities
 python-dotenv==1.0.0
@@ -23,3 +24,4 @@ pytest-cov==4.1.0
 
 accelerate==1.2.1 
 pyarrow==19.0.0
+optuna==4.6.0
