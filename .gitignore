@@ -1,3 +1,14 @@
+# Artifacts
+artifacts/
+models/
+
+# HuggingFace cache
+data/hf_cache/
+
+# Python
+__pycache__/
+.pytest_cache/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
